@@ -13,6 +13,8 @@ import { generateUsernameFromName, generateSecurePassword, generateLicenseNumber
 import type { DriverAuth, TransportVehicle } from '@/types/types';
 
 interface DriverFormData {
+  username: string;
+  password: string;
   full_name: string;
   email: string;
   phone: string;
@@ -31,6 +33,8 @@ export default function ManageDrivers() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [editingDriver, setEditingDriver] = useState<DriverAuth | null>(null);
   const [formData, setFormData] = useState<DriverFormData>({
+    username: '',
+    password: '',
     full_name: '',
     email: '',
     phone: '',
@@ -62,6 +66,8 @@ export default function ManageDrivers() {
     if (driver) {
       setEditingDriver(driver);
       setFormData({
+        username: driver.username,
+        password: '',
         full_name: driver.full_name,
         email: driver.email || '',
         phone: driver.phone || '',
@@ -72,6 +78,8 @@ export default function ManageDrivers() {
       setEditingDriver(null);
       const existingLicenses = drivers.map(d => d.license_number).filter(Boolean) as string[];
       setFormData({
+        username: '',
+        password: '',
         full_name: '',
         email: '',
         phone: '',
@@ -90,6 +98,21 @@ export default function ManageDrivers() {
       return;
     }
 
+    if (!editingDriver) {
+      if (!formData.username) {
+        toast.error('Username is required');
+        return;
+      }
+      if (!formData.password) {
+        toast.error('Password is required');
+        return;
+      }
+      if (formData.password.length < 6) {
+        toast.error('Password must be at least 6 characters');
+        return;
+      }
+    }
+
     try {
       if (editingDriver) {
         await updateDriver();
@@ -103,13 +126,9 @@ export default function ManageDrivers() {
   };
 
   const createDriver = async () => {
-    const existingUsernames = drivers.map(d => d.username);
-    const username = generateUsernameFromName(formData.full_name, 'driver', existingUsernames);
-    const password = generateSecurePassword();
-
     const driverData = {
-      username,
-      password_hash: password,
+      username: formData.username,
+      password_hash: formData.password,
       full_name: formData.full_name,
       email: formData.email || null,
       phone: formData.phone || null,
@@ -124,7 +143,7 @@ export default function ManageDrivers() {
 
     await driversAuthApi.create(driverData);
 
-    setGeneratedCredentials({ username, password });
+    setGeneratedCredentials({ username: formData.username, password: formData.password });
     setDialogOpen(false);
     setCredentialsDialogOpen(true);
     loadData();
@@ -193,7 +212,7 @@ export default function ManageDrivers() {
               <DialogDescription>
                 {editingDriver 
                   ? 'Update driver information' 
-                  : 'Enter driver details. Login credentials will be generated automatically.'}
+                  : 'Enter driver details and set login credentials.'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
@@ -208,6 +227,45 @@ export default function ManageDrivers() {
                     required
                   />
                 </div>
+                
+                {!editingDriver && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Username *</Label>
+                      <Input
+                        id="username"
+                        value={formData.username}
+                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                        placeholder="johndriver"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password *</Label>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          placeholder="Minimum 6 characters"
+                          required
+                          minLength={6}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input

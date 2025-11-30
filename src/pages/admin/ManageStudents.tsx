@@ -13,8 +13,12 @@ import { generateUsername, generateUsernameFromName, generateSecurePassword, gen
 import type { StudentAuth, ParentAuth, TransportVehicle } from '@/types/types';
 
 interface StudentFormData {
+  student_username: string;
+  student_password: string;
   full_name: string;
   grade: string;
+  parent_username: string;
+  parent_password: string;
   parent_full_name: string;
   parent_email: string;
   parent_phone: string;
@@ -47,8 +51,12 @@ export default function ManageStudents() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [editingStudent, setEditingStudent] = useState<StudentAuth | null>(null);
   const [formData, setFormData] = useState<StudentFormData>({
+    student_username: '',
+    student_password: '',
     full_name: '',
     grade: '',
+    parent_username: '',
+    parent_password: '',
     parent_full_name: '',
     parent_email: '',
     parent_phone: '',
@@ -89,8 +97,12 @@ export default function ManageStudents() {
       setEditingStudent(student);
       const parent = parents.find(p => p.id === student.parent_id);
       setFormData({
+        student_username: student.username,
+        student_password: '',
         full_name: student.full_name,
         grade: student.grade || '',
+        parent_username: parent?.username || '',
+        parent_password: '',
         parent_full_name: parent?.full_name || '',
         parent_email: parent?.email || '',
         parent_phone: parent?.phone || '',
@@ -106,8 +118,12 @@ export default function ManageStudents() {
     } else {
       setEditingStudent(null);
       setFormData({
+        student_username: '',
+        student_password: '',
         full_name: '',
         grade: '',
+        parent_username: '',
+        parent_password: '',
         parent_full_name: '',
         parent_email: '',
         parent_phone: '',
@@ -132,6 +148,21 @@ export default function ManageStudents() {
       return;
     }
 
+    if (!editingStudent) {
+      if (!formData.student_username || !formData.student_password) {
+        toast.error('Student username and password are required');
+        return;
+      }
+      if (!formData.parent_username || !formData.parent_password) {
+        toast.error('Parent username and password are required');
+        return;
+      }
+      if (formData.student_password.length < 6 || formData.parent_password.length < 6) {
+        toast.error('Passwords must be at least 6 characters');
+        return;
+      }
+    }
+
     try {
       if (editingStudent) {
         await updateStudent();
@@ -145,21 +176,9 @@ export default function ManageStudents() {
   };
 
   const createStudentWithParent = async () => {
-    const existingUsernames = [
-      ...students.map(s => s.username),
-      ...parents.map(p => p.username)
-    ];
-
-    const studentUsername = generateUsernameFromName(formData.full_name, 'student', existingUsernames);
-    const studentPassword = generateSecurePassword();
-    
-    existingUsernames.push(studentUsername);
-    const parentUsername = generateUsernameFromName(formData.parent_full_name, 'parent', existingUsernames);
-    const parentPassword = generateSecurePassword();
-
     const parentData = {
-      username: parentUsername,
-      password_hash: parentPassword,
+      username: formData.parent_username,
+      password_hash: formData.parent_password,
       full_name: formData.parent_full_name,
       email: formData.parent_email || null,
       phone: formData.parent_phone || null,
@@ -170,8 +189,8 @@ export default function ManageStudents() {
     const newParent = await parentsAuthApi.create(parentData);
 
     const studentData = {
-      username: studentUsername,
-      password_hash: studentPassword,
+      username: formData.student_username,
+      password_hash: formData.student_password,
       full_name: formData.full_name,
       grade: formData.grade || null,
       parent_id: newParent.id,
@@ -188,10 +207,10 @@ export default function ManageStudents() {
     await studentsAuthApi.create(studentData);
 
     setGeneratedCredentials({
-      studentUsername,
-      studentPassword,
-      parentUsername,
-      parentPassword
+      studentUsername: formData.student_username,
+      studentPassword: formData.student_password,
+      parentUsername: formData.parent_username,
+      parentPassword: formData.parent_password
     });
 
     setDialogOpen(false);
@@ -283,7 +302,7 @@ export default function ManageStudents() {
               <DialogDescription>
                 {editingStudent 
                   ? 'Update student and parent information' 
-                  : 'Enter student details. Parent account will be created automatically.'}
+                  : 'Enter student details and set login credentials for both student and parent.'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
@@ -311,6 +330,45 @@ export default function ManageStudents() {
                       />
                     </div>
                   </div>
+                  
+                  {!editingStudent && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="student_username">Student Username *</Label>
+                        <Input
+                          id="student_username"
+                          value={formData.student_username}
+                          onChange={(e) => setFormData({ ...formData, student_username: e.target.value })}
+                          placeholder="johndoe"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="student_password">Student Password *</Label>
+                        <div className="relative">
+                          <Input
+                            id="student_password"
+                            type={showPasswords ? 'text' : 'password'}
+                            value={formData.student_password}
+                            onChange={(e) => setFormData({ ...formData, student_password: e.target.value })}
+                            placeholder="Minimum 6 characters"
+                            required
+                            minLength={6}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-0 top-0 h-full px-3"
+                            onClick={() => setShowPasswords(!showPasswords)}
+                          >
+                            {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="space-y-2">
                     <Label htmlFor="vehicle_id">Assigned Vehicle</Label>
                     <select
@@ -352,6 +410,34 @@ export default function ManageStudents() {
                       />
                     </div>
                   </div>
+                  
+                  {!editingStudent && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="parent_username">Parent Username *</Label>
+                        <Input
+                          id="parent_username"
+                          value={formData.parent_username}
+                          onChange={(e) => setFormData({ ...formData, parent_username: e.target.value })}
+                          placeholder="janedoe"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="parent_password">Parent Password *</Label>
+                        <Input
+                          id="parent_password"
+                          type={showPasswords ? 'text' : 'password'}
+                          value={formData.parent_password}
+                          onChange={(e) => setFormData({ ...formData, parent_password: e.target.value })}
+                          placeholder="Minimum 6 characters"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="parent_email">Email</Label>

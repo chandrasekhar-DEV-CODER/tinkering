@@ -17,7 +17,7 @@ A comprehensive school bus management platform providing unified login portal su
   - Username: `chandrasekharadmin`
   - Password: `chandrasekharadmin1023@@`
 - JWT authentication and session management
-- **Universal Credential System**: All user accounts (administrators, drivers, students, parents) are created with username and password credentials
+- **Universal Credential System**: All user accounts (administrators, drivers, students, parents) are created with custom username and password credentials set during account creation
 
 ### 3.2 Administrator Module (Phase 1: Operational Data Management)
 \n#### 3.2.1 Vehicle Management (CRUD)\n- **Add Vehicle**: Vehicle ID, license plate, model, capacity, route name (e.g., 'Route 4- North Campus')
@@ -30,16 +30,20 @@ A comprehensive school bus management platform providing unified login portal su
 - **Add Driver Feature**:
   - **Driver Information Form**: Capture all necessary driver details including:\n    - Full name
     - Contact phone number
-    - Email address
-    - License number
+    - Email address\n    - License number
+    - **User ID** (custom username field - admin enters desired username)
+    - **Password** (custom password field - admin sets initial password)
     - Assigned vehicle (vehicle_id association)
     - Emergency contact information
-  - **Automatic Driver Account Generation**:\n    - System automatically generates a unique username for the driver (format: `driver_[licenseNumber]` or custom pattern)
-    - System automatically generates a secure random password for the driver account
-    - Display generated credentials to admin immediately after creation (with copy-to-clipboard functionality)
+  - **Manual Credential Entry**:
+    - Admin manually enters desired username in'User ID' field
+    - Admin manually enters initial password in 'Password' field\n    - System validates username uniqueness across all user tables before account creation
+    - System validates password meets complexity requirements (minimum 8 characters, mix of uppercase, lowercase, numbers, special characters)
+    - Display validation errors inline if username already exists or password is weak
     - Store credentials securely in the `drivers` table with proper encryption
+  - **Credential Display**: Show entered credentials to admin after successful creation with copy-to-clipboard functionality
 - **View Driver List**: Display using shadcn/ui Data Tables component with account credentials (masked, with reveal option for admin)
-- **Edit Driver Information**: Implement via Dialog/Sheet components, allow updating driver details and reassigning vehicles
+- **Edit Driver Information**: Implement via Dialog/Sheet components, allow updating driver details, reassigning vehicles, and resetting passwords
 - **Deactivate/Delete Driver Accounts**: System validates that driver has no active trips before deactivation
 - **Vehicle Association**: Must specify vehicle_id when creating driver to establish relationship link
 - **Admin-Exclusive Management**: All driver account creation and management operations must be performed exclusively through the admin dashboard interface
@@ -49,24 +53,28 @@ A comprehensive school bus management platform providing unified login portal su
   - **Student Information Form**: Capture all necessary student details including:
     - Full name
     - Student ID number
+    - **User ID** (custom username field - admin enters desired username)
+    - **Password** (custom password field - admin sets initial password)
     - Grade level
     - Pickup/drop-off point coordinates
     - Emergency contact information
     - Assigned bus/route information
-  - **Automatic Student Account Generation**:
-    - System automatically generates a unique username for the student (format: `student_[studentID]` or custom pattern)
-    - System automatically generates a secure random password for the student account
-    - Display generated credentials to admin immediately after creation (with copy-to-clipboard functionality)
+  - **Manual Credential Entry**:
+    - Admin manually enters desired username in 'User ID' field
+    - Admin manually enters initial password in 'Password' field
+    - System validates username uniqueness across all user tables\n    - System validates password complexity requirements\n    - Display validation errors inline if username exists or password is weak
     - Store credentials securely in the `students` table with proper encryption
   - **Linked Parent Profile Creation** (Mandatory):
     - During student addition process, capture parent/guardian details as part of the same workflow:\n      - Parent/guardian full name
+      - **User ID** (custom username field - admin enters desired username for parent)
+      - **Password** (custom password field - admin sets initial password for parent)
       - Contact phone number
       - Email address
       - Relationship to student (father/mother/guardian)
       - Secondary contact (optional)
       - Home address
-    - System automatically generates a unique username for the parent account (format: `parent_[studentID]` or custom pattern)
-    - System automatically generates a secure random password for the parent account
+    - System validates parent username uniqueness across all user tables
+    - System validates parent password complexity requirements
     - Automatically link parent account to the newly created student record via foreign key relationship
     - Display both student and parent credentials to admin after successful creation in a consolidated view
     - Store parent credentials securely in the `parents` table\n    - **Atomic Transaction**: Student and parent account creation must be executed as a single atomic transaction to ensure data integrity
@@ -78,7 +86,7 @@ A comprehensive school bus management platform providing unified login portal su
   - Grade level
   - Associated parent information\n  - Account credentials (masked, with reveal option for admin)
   - Account status (active/inactive)
-  - Assigned bus/route\n- **Edit Student Information**: Update student details and modify parent associations if needed
+  - Assigned bus/route\n- **Edit Student Information**: Update student details, modify parent associations, and reset passwords if needed
 - **Deactivate/Delete Student Records**: \n  - When deactivating a student, system prompts admin to handle associated parent account
   - Option to deactivate parent if no other students are linked\n  - Maintain data integrity through cascading rules
   - Require admin confirmation before deactivation
@@ -92,8 +100,8 @@ A comprehensive school bus management platform providing unified login portal su
   - Login credentials (masked, with reveal option for admin)
   - Relationship to student(s)\n- **Edit Parent Information**: \n  - Update contact details (phone, email, address)
   - Modify student associations (link/unlink students)
-  - Update relationship information\n  - Cannot modify auto-generated username (read-only)
-  - Can reset password (generates new secure password)
+  - Update relationship information\n  - Cannot modify username (read-only)
+  - Can reset password (admin enters new password)
 - **Deactivate/Delete Parent Accounts**:
   - System prevents deletion if parent has active linked students
   - Provide warning message listing all linked students
@@ -102,8 +110,8 @@ A comprehensive school bus management platform providing unified login portal su
 - **Manual Parent Addition** (Special Cases Only):
   - Allow admin to manually add parent accounts for edge cases (e.g., guardian changes, multiple guardians)
   - Require linking to at least one existing student during creation
-  - Follow same automatic credential generation process
-  - Display generated credentials immediately with copy functionality
+  - Admin manually enters User ID and Password for the parent
+  - Follow same credential validation process\n  - Display generated credentials immediately with copy functionality
 - **Parent-Student Relationship Management**:
   - Support one-to-many relationships (one parent linked to multiple students)
   - Visual relationship tree in the dashboard
@@ -128,11 +136,12 @@ A comprehensive school bus management platform providing unified login portal su
 - **Supabase RLS (Row Level Security) Policies**:
   - **Administrator Role**:
     - Full CRUD permissions on all tables (vehicles, drivers, students, parents, routes)
-    - Exclusive access to user account creation and credential generation for all user types
+    - Exclusive access to user account creation with manual credential entry for all user types
     - Exclusive access to route configuration and management
     - Ability to view and manage all system data across all modules
     - Access to audit logs and system reports
     - Exclusive access to credential reveal functionality
+    - Ability to reset passwords for all user types
   - **Driver Role**:
     - READ-only access to assigned vehicle information
     - READ-only access to assigned route information
@@ -165,20 +174,21 @@ A comprehensive school bus management platform providing unified login portal su
   - IP whitelisting option for admin access (optional security enhancement)
 
 #### 3.2.8 Credential Management System
-- **Credential Generation Service**:
-  - Cryptographically secure random username generation with configurable patterns
-  - Secure random password generation meeting complexity requirements (minimum 8 characters, mix of uppercase, lowercase, numbers, special characters)
-  - Uniqueness validation across all user tables before account creation
-  - Collision detection and retry mechanism\n- **Credential Display Interface**:
-  - Modal dialog displaying generated credentials immediately after account creation
+- **Manual Credential Entry Interface**:
+  - Form fields for 'User ID' (username) and 'Password' in all user creation forms
+  - Real-time validation feedback for username uniqueness
+  - Password strength indicator showing complexity requirements
+  - Inline error messages for validation failures
+  - Clear labeling of required fields
+- **Credential Display Interface**:
+  - Modal dialog displaying entered credentials after successful account creation
   - Copy-to-clipboard functionality for both username and password
   - Print-friendly format for physical credential distribution
-  - Warning message about credential security and one-time display
-  - Option to send credentials via email (optional feature)
+  - Warning message about credential security\n  - Option to send credentials via email (optional feature)
 - **Credential Management Features**:
   - Admin ability to view masked credentials in user lists
   - Reveal functionality with audit logging
-  - Password reset capability generating new secure passwords
+  - Password reset capability where admin enters new password
   - Bulk credential export for backup purposes (encrypted format)
   - Credential expiration and forced password change policies (optional)
 
@@ -208,7 +218,8 @@ A comprehensive school bus management platform providing unified login portal su
 
 #### 3.4.1 Real-time Map Tracking (Phase 2: Map Integration)
 - **Map Engine**: React-Leaflet + CartoDB Dark Matter Tiles
-- **Visual Style**: Cyber-dark theme with neon green markers\n- **Core Features**:
+- **Visual Style**: Cyber-dark theme with neon green markers
+- **Core Features**:
   - Automatically load map interface after login
   - Display real-time location of bus assigned to the student
   - Vehicle markers use neon green pulse animation effect
@@ -216,14 +227,16 @@ A comprehensive school bus management platform providing unified login portal su
   - Display vehicle movement trajectory\n  - Smooth animation transitions: Use CSS transitions to interpolate between coordinate points for sliding effect instead of teleportation
   - Display pulse animation when vehicle is moving (triggered when speed > 0)
 \n#### 3.4.2 Location Information Display
-- Student pickup/drop-off point markers\n- Distance between current bus location and pickup point
+- Student pickup/drop-off point markers
+- Distance between current bus location and pickup point
 - Estimated Time of Arrival (ETA)
 - Automatic map refresh mechanism (via Socket.io real-time subscription)
 - Route information display (read-only)
 
 #### 3.4.3 Real-time Data Subscription
 - Subscribe to vehicle location updates using Socket.io
-- Filter relevant vehicle data by busId\n- No manual page refresh needed, data automatically pushed\n- Use hashmap data structure for efficient multi-vehicle state management: `{ busId: { lat, lng, speed, heading } }`
+- Filter relevant vehicle data by busId
+- No manual page refresh needed, data automatically pushed\n- Use hashmap data structure for efficient multi-vehicle state management: `{ busId: { lat, lng, speed, heading } }`
 
 #### 3.4.4 Geofencing and Push Notifications (Phase 5: Advanced)
 - **Distance Calculation**: Use Haversine formula to calculate distance between bus and student pickup point
@@ -233,8 +246,7 @@ A comprehensive school bus management platform providing unified login portal su
   - Automatically request push permissions\n  - Obtain FCM Token and upload to backend
   - Configure notification handlers: shouldShowAlert, shouldPlaySound, shouldSetBadge
   - Listen for notification receipt events and log to console
-- **Trigger Logic**: Real-time monitoring of location changes with automatic detection\n
-### 3.5 Development and Testing Tools
+- **Trigger Logic**: Real-time monitoring of location changes with automatic detection\n\n### 3.5 Development and Testing Tools
 
 #### 3.5.1 GPS Simulator (simulateBus.js)
 - **Purpose**: Simulate bus traveling along preset routes for development testing
@@ -259,11 +271,12 @@ A comprehensive school bus management platform providing unified login portal su
   - `gps_logs` table: Driver real-time location records (id, driver_id, vehicle_id, latitude, longitude, heading, speed, timestamp)\n  - `audit_logs` table: Administrative action logging (id, admin_id, action_type, target_table, target_id, action_details, ip_address, timestamp)
 
 - **Database Constraints**:
-  - Foreign key constraint: `parents.student_id` references `students.id` with ON DELETE RESTRICT\n  - Foreign key constraint: `drivers.vehicle_id` references `vehicles.id` with ON DELETE SET NULL
+  - Foreign key constraint: `parents.student_id` references `students.id` with ON DELETE RESTRICT
+  - Foreign key constraint: `drivers.vehicle_id` references `vehicles.id` with ON DELETE SET NULL
   - Foreign key constraint: `students.bus_id` references `vehicles.id` with ON DELETE SET NULL
   - Unique constraint on usernames across all user tables (enforced via unique index)
   - Check constraint ensuring parent accounts have at least one linked student
-  - Check constraint on password complexity requirements
+  - Check constraint on password complexity requirements (minimum 8 characters, mixed case, numbers, special characters)
   - Index on frequently queried fields (username, student_id_number, vehicle_id)\n
 ### 4.2 Backend Technology Stack
 - Supabase (replacing traditional Node.js + MongoDB approach)
@@ -272,7 +285,7 @@ A comprehensive school bus management platform providing unified login portal su
 - RESTful API auto-generation\n- Row Level Security (RLS) permission control
 - GeofenceService (geofencing distance calculation service)
 - Push Notification Service (push notification service, integrated with FCM)
-- **Credential Generation Service**: Secure random username/password generator with configurable patterns and collision detection
+- **Credential Validation Service**: Username uniqueness checker and password complexity validator
 - **Audit Logging Service**: Track all administrative actions for compliance and security with IP tracking
 - **Transaction Management Service**: Ensure atomic operations for student-parent creation\n
 ### 4.3 Frontend Technology Stack
@@ -282,6 +295,8 @@ A comprehensive school bus management platform providing unified login portal su
 - mapbox-gl-draw (route drawing plugin)
 - **Enhanced Student/Parent Management UI**:
   - Multi-step form wizard for student addition with parent details
+  - Manual credential entry fields with real-time validation
+  - Password strength indicator component
   - Credential display modal with copy-to-clipboard functionality
   - Parent-student relationship visualization (tree view or graph)
   - Bulk import capability (optional future enhancement)
@@ -320,30 +335,30 @@ npm install expo-notifications (mobile)\n```
 - `GET /api/admin/vehicles`: Admin retrieve vehicle list
 - `POST /api/admin/vehicles`: Admin add vehicle\n- `PUT /api/admin/vehicles/:id`: Admin update vehicle
 - `DELETE /api/admin/vehicles/:id`: Admin delete vehicle
-- **`POST /api/admin/drivers`**: Admin add driver with auto-generated credentials
+- **`POST /api/admin/drivers`**: Admin add driver with manual credential entry (validates username uniqueness and password complexity)
 - **`GET /api/admin/drivers`**: Admin retrieve driver list
 - **`PUT /api/admin/drivers/:id`**: Admin update driver information
 - **`DELETE /api/admin/drivers/:id`**: Admin deactivate driver
-- **`POST /api/admin/students`**: Admin add student with auto-generated credentials and linked parent (atomic transaction)
+- **`POST /api/admin/students`**: Admin add student with manual credential entry and linked parent (atomic transaction, validates both usernames and passwords)
 - **`GET /api/admin/students`**: Admin retrieve student list with parent associations
 - **`PUT /api/admin/students/:id`**: Admin update student information
 - **`DELETE /api/admin/students/:id`**: Admin deactivate student (with parent handling logic)
 - **`GET /api/admin/parents`**: Admin retrieve parent list with student associations
 - **`PUT /api/admin/parents/:id`**: Admin update parent information
 - **`DELETE /api/admin/parents/:id`**: Admin deactivate parent (with validation)
-- **`POST /api/admin/parents`**: Admin manually add parent (special cases)
-- `POST /api/routes`: Create route (receive polyline string)
-- `GET /api/routes/:id`: Get route details
+- **`POST /api/admin/parents`**: Admin manually add parent (special cases)\n- `POST /api/routes`: Create route (receive polyline string)\n- `GET /api/routes/:id`: Get route details
 - `PUT /api/routes/:id`: Update route
 - `DELETE /api/routes/:id`: Delete route (with validation)
 - `POST /api/users/update-fcm`: Update user FCM Token
 - **`GET /api/admin/audit-logs`**: Retrieve administrative action logs with filtering
 - **`POST /api/admin/credentials/reveal`**: Reveal masked credentials (with audit logging)
-- **`POST /api/admin/credentials/reset-password`**: Reset user password (generates new password)
+- **`POST /api/admin/credentials/reset-password`**: Reset user password (admin enters new password)
+- **`POST /api/admin/validate-username`**: Check username uniqueness across all user tables
+- **`POST /api/admin/validate-password`**: Validate password complexity requirements
 
 ### 4.5 Socket.io Event Definitions
-\n#### Driver Events:
-- `driver:auth`: Driver authentication (send token and busId)
+
+#### Driver Events:\n- `driver:auth`: Driver authentication (send token and busId)
 - `driver:ping`: Send location update (busId, lat, lng, speed, heading, timestamp)
 \n#### Admin Events:
 - `admin:all_buses_update`: Receive all vehicle location updates
@@ -384,7 +399,9 @@ import LiveMap from '@/components/map/LiveMap';
 const DashboardPage = () => {
   const [buses, setBuses] = useState({});
   const { socket } = useSocket();
-\n  useEffect(() => {\n    if (!socket) return;
+
+  useEffect(() => {
+    if (!socket) return;
     socket.on('admin:all_buses_update', (data) => {
       setBuses(prev => ({
         ...prev,
@@ -451,11 +468,13 @@ const DashboardPage = () => {
 - Implement admin CRUD interfaces for all user types
 - Use shadcn/ui Data Tables and Dialog components
 - Configure Supabase RLS permission policies
-- **Implement enhanced student/parent management with automatic credential generation**
-- **Develop credential display and management UI with copy-to-clipboard**
+- **Implement enhanced student/parent management with manual credential entry**
+- **Develop credential entry forms with real-time validation (username uniqueness, password strength)**
+- **Implement credential display UI with copy-to-clipboard**
 - **Implement audit logging for all administrative actions**
-- **Develop driver account management with credential generation**
+- **Develop driver account management with manual credential entry**
 - **Implement atomic transaction handling for student-parent creation**
+- **Build password strength indicator component**
 
 ### Phase 2: Map Integration (Priority: High, Complexity: Medium)\n- Integrate React-Leaflet and CartoDB Dark Matter\n- Create LiveMap component\n- Implement neon green pulse markers
 - Integrate mapbox-gl-draw route drawing tool
@@ -490,10 +509,11 @@ const DashboardPage = () => {
 2. **Open Driver Control Panel**: Access `http://192.168.1.x:3000/driver` in mobile browser (use local IP)
 3. **Open Admin Dashboard**: Access real-time monitoring map in desktop browser
 4. **Verify Data Flow**: Confirm map markers move with simulator or real GPS
-5. **Test Student/Parent Creation**: Verify automatic credential generation and parent linking
-6. **Test Driver Creation**: Verify automatic credential generation\n7. **Test RBAC**: Verify role-based access restrictions work correctly across all endpoints
+5. **Test Student/Parent Creation**: Verify manual credential entry with validation and parent linking
+6. **Test Driver Creation**: Verify manual credential entry with validation\n7. **Test RBAC**: Verify role-based access restrictions work correctly across all endpoints
 8. **Test Credential Management**: Verify reveal/mask functionality and audit logging
-9. **Test Route Management**: Verify admin-exclusive route configuration
+9. **Test Route Management**: Verify admin-exclusive route configuration\n10. **Test Username Uniqueness**: Attempt to create duplicate usernames across different user types
+11. **Test Password Validation**: Attempt to create accounts with weak passwords
 \n### 7.2 Key Verification Points
 - Socket.io connection status
 - GPS data reporting frequency
@@ -501,8 +521,10 @@ const DashboardPage = () => {
 - Push notification trigger timing
 - Multi-vehicle concurrent tracking performance
 - **Student-parent account creation atomicity**
-- **Driver account creation with credential generation**
-- **Credential generation uniqueness and security**
+- **Driver account creation with manual credential entry**
+- **Username uniqueness validation across all user tables**
+- **Password complexity validation**
+- **Real-time validation feedback in forms**
 - **RBAC policy enforcement across all endpoints**
 - **Audit logging accuracy and completeness**
 - **Transaction rollback on failure scenarios**
@@ -513,11 +535,13 @@ const DashboardPage = () => {
 - Set FCM server key\n- Configure Supabase production environment variables
 - Enable HTTPS (required for push notifications and geolocation)
 - **Verify RLS policies are active in production**
-- **Test credential generation service under load**
+- **Test credential validation service under load**
 - **Configure audit log retention policy**
 - **Set up database backup and recovery procedures**
 - **Configure session timeout and security headers**
 - **Test all RBAC policies in production environment**
+- **Verify username uniqueness constraints are enforced**
+- **Test password complexity validation in production**
 \n## 8. Security and Performance\n- Password encryption storage (Supabase Auth built-in bcrypt)
 - JWT token expiration mechanism with refresh token support
 - CORS cross-origin configuration
@@ -527,7 +551,8 @@ const DashboardPage = () => {
 - Supabase RLS row-level security policies
 - Socket.io room isolation mechanism
 - FCM Token secure storage and updates
-- **Secure random credential generation with cryptographic strength (crypto.randomBytes)**
+- **Real-time username uniqueness validation to prevent duplicates**
+- **Password complexity enforcement (minimum 8 characters, mixed case, numbers, special characters)**
 - **Audit logging for all administrative actions with IP tracking**
 - **Database transaction management for atomic student-parent creation**
 - **Input validation and sanitization for all user-generated content**
@@ -535,9 +560,9 @@ const DashboardPage = () => {
 - **XSS protection through content security policies**
 - **Session management with secure cookies (httpOnly, secure, sameSite)**
 - **Credential reveal audit trail with timestamp and admin identification**
-- **Password complexity enforcement (minimum 8 characters, mixed case, numbers, special characters)**
-
-## 9. Website Design Style\n- **Theme Positioning**: Cyber-dark style with neon green accents, emphasizing technology and futurism
+- **Form validation on both client and server side**
+- **Unique index constraints on username fields across all user tables**
+\n## 9. Website Design Style\n- **Theme Positioning**: Cyber-dark style with neon green accents, emphasizing technology and futurism
 - **Color Scheme**:\n  - Main background: #1a1a1a (deep black)
   - Card background: #ffffff (pure white, admin dashboard)
   - Primary color: #3b82f6 (tech blue)
@@ -545,6 +570,8 @@ const DashboardPage = () => {
   - Warning/stop button: #ef4444 (red)\n  - Border color: #e2e8f0 (light gray)
   - Success state: #10b981 (emerald green)
   - Error state: #ef4444 (red)
+- Validation error: #ef4444 (red for error messages)
+  - Validation success: #10b981 (green for valid inputs)
 - **Visual Details**:
   - Map markers: Neon green pulse animation (animate-ping) with shadow effects (shadow-green-400), pulse displays when vehicle is moving
   - Border radius: Medium rounded (0.5rem), large buttons use rounded-xl
@@ -552,9 +579,11 @@ const DashboardPage = () => {
   - Buttons: Flat design with slight lift effect on hover, driver control panel buttons use large size design (py-6text-2xl)
   - Map: CartoDB Dark Matter dark basemap, clear marker icons, vehicle markers with directional indicators and speed status
   - Tables: Zebra-striped rows, hover highlighting, sortable columns\n  - Status indicators: Use colors to distinguish online/offline status (ON AIR in emerald green, OFFLINE in gray)
-  - **Form elements**: Clear field labels, validation feedback, success/error states with appropriate color coding
+  - **Form elements**: Clear field labels, inline validation feedback with color-coded messages, success/error states with appropriate color coding
+  - **Password strength indicator**: Visual bar showing password strength (weak/medium/strong) with color progression (red/yellow/green)
   - **Credential display**: Monospace font for usernames/passwords, masked by default with reveal toggle
   - **Multi-step forms**: Progress bar with step indicators, clear navigation buttons
+  - **Validation messages**: Inline error messages below input fields, real-time feedback as user types
 - **Layout Approach**:
   - Admin dashboard: Sidebar navigation + main content area with breadcrumb navigation
   - Driver control panel: Full-screen vertical center layout, large button design for mobile operation convenience
@@ -564,3 +593,4 @@ const DashboardPage = () => {
   - **Multi-step forms**: Progress indicators for student/parent creation workflow with step validation
   - **Modal dialogs**: Centered overlay with backdrop blur, clear action buttons
   - **Data tables**: Pagination, search, filter, and sort capabilities with responsive column hiding
+  - **Form validation**: Real-time feedback with color-coded borders (red for errors, green for valid inputs)
