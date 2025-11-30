@@ -4,7 +4,7 @@
 My School Ride - School Bus Tracking Management System (MVP Version)
 
 ## 2. Website Description
-A comprehensive school bus management platform providing unified login portal supporting four user roles: administrators, drivers, students, and parents. Core capabilities include: complete vehicle, driver, student, and parent management by administrators; real-time GPS location reporting by drivers; live bus tracking for students and parents; push notification alerts; and visual route management.
+A comprehensive school bus management platform providing unified login portal supporting four user roles: administrators, drivers, students, and parents. Core capabilities include: complete vehicle, driver, student, and parent management by administrators; real-time GPS location reporting by drivers; live bus tracking for students and parents; push notification alerts; visual route management; and real-time hourly active vehicle analytics.
 
 ## 3. Core Functional Modules
 
@@ -27,7 +27,8 @@ A comprehensive school bus management platform providing unified login portal su
 - **Admin-Exclusive Management**: All vehicle data management operations must be performed exclusively through the admin dashboard interface
 
 #### 3.2.2 Driver Management (CRUD)
-- **Add Driver Feature**:\n  - **Driver Information Form**: Capture all necessary driver details including:\n    - Full name
+- **Add Driver Feature**:
+  - **Driver Information Form**: Capture all necessary driver details including:\n    - Full name
     - Contact phone number
     - Email address\n    - License number
     - **User ID** (custom username field - admin enters desired username)
@@ -115,8 +116,7 @@ A comprehensive school bus management platform providing unified login portal su
   - Search bar styling consistent with overall design theme
 - **Edit Parent Information**: \n  - Update contact details (phone, email, address)
   - Modify student associations (link/unlink students)
-  - Update relationship information
-  - Cannot modify username (read-only)
+  - Update relationship information\n  - Cannot modify username (read-only)
   - Can reset password (admin enters new password)
 - **Deactivate/Delete Parent Accounts**:
   - System prevents deletion if parent has active linked students
@@ -148,35 +148,65 @@ A comprehensive school bus management platform providing unified login portal su
 - **Vehicle Details View**: Click map markers to view detailed vehicle information, assigned driver, and current route
 - **Real-time Data Updates**: Receive vehicle location updates via Socket.io and refresh map display automatically
 - **Historical Playback**: Access last 24 hours of vehicle trajectory data for review and analysis
-\n#### 3.2.7 Role-Based Access Control (RBAC) - Enhanced
+\n#### 3.2.7 Hourly Active Vehicles Analytics Dashboard
+- **Real-time Active Vehicle Counter**:
+  - Display current number of active vehicles (vehicles with active trips in progress)
+  - Prominent card widget positioned at top of admin dashboard
+  - Large numeric display with neon green accent color (#10b981)
+  - Auto-refresh every 30 seconds via Socket.io real-time updates
+  - Visual indicator showing increase/decrease compared to previous hour
+- **Hourly Activity Chart**:
+  - Line chart displaying active vehicle count for the current day (24-hour period)
+  - X-axis: Hours (00:00 to 23:00)\n  - Y-axis: Number of active vehicles
+  - Data points updated in real-time as vehicles start/stop trips
+  - Chart library: Recharts or Chart.js with dark theme styling
+  - Hover tooltips showing exact vehicle count and hour
+  - Color scheme: Neon green line (#10b981) on dark background (#1a1a1a)
+- **Active Vehicle List Panel**:
+  - Collapsible side panel showing currently active vehicles
+  - Display vehicle ID, driver name, route name, trip start time\n  - Real-time status updates (moving/stopped)\n  - Click to highlight vehicle on map
+  - Sort by trip duration or vehicle ID
+- **Historical Comparison**:
+  - Compare current day's hourly activity with previous day
+  - Display percentage change in activity levels
+  - Weekly average active vehicles metric
+- **Data Calculation Logic**:
+  - Active vehicle defined as: vehicle with trip status = 'active' in current hour
+  - Query `gps_logs` table grouped by hour with vehicle_id count
+  - Cache hourly aggregates for performance optimization
+  - Real-time updates via Socket.io event: `admin:hourly_stats_update`
+
+#### 3.2.8 Role-Based Access Control (RBAC) - Enhanced
 - **Supabase RLS (Row Level Security) Policies**:
   - **Administrator Role**:
-    - Full CRUD permissions on all tables (vehicles, drivers, students, parents, routes)
-    - Exclusive access to user account creation with manual credential entry for all user types
+    - Full CRUD permissions on all tables (vehicles, drivers, students, parents, routes)\n    - Exclusive access to user account creation with manual credential entry for all user types
     - Exclusive access to route configuration and management
     - Ability to view and manage all system data across all modules
     - Access to audit logs and system reports
     - Exclusive access to credential reveal functionality
     - Ability to reset passwords for all user types
+    - Full access to hourly active vehicle analytics and historical data
   - **Driver Role**:
     - READ-only access to assigned vehicle information
     - READ-only access to assigned route information
     - UPDATE permission only for own GPS location data and trip status
-    - READ-only access to own account profile
-    - No access to student/parent personal information
+    - READ-only access to own account profile\n    - No access to student/parent personal information
     - No access to other drivers' data
+    - No access to analytics dashboard
   - **Student Role**:
     - READ-only access to own profile information
     - READ-only access to assigned bus real-time location
     - READ-only access to assigned route and stop information
     - No access to other students' data
     - No access to driver or parent account details
+    - No access to analytics dashboard
   - **Parent Role**:
     - READ-only access to linked student(s) information
     - READ-only access to assigned bus real-time location for linked students
     - READ-only access to route and stop information for linked students
     - No access to other families' data
     - No access to driver account details
+    - No access to analytics dashboard
 - **Data Integrity Enforcement**:
   - Database-level foreign key constraints ensure parent accounts cannot exist without linked students
   - Cascading rules prevent orphaned records
@@ -189,7 +219,7 @@ A comprehensive school bus management platform providing unified login portal su
   - Session timeout and re-authentication for sensitive operations
   - IP whitelisting option for admin access (optional security enhancement)
 
-#### 3.2.8 Credential Management System
+#### 3.2.9 Credential Management System
 - **Manual Credential Entry Interface**:
   - Form fields for 'User ID' (username) and 'Password' in all user creation forms
   - Real-time validation feedback for username uniqueness
@@ -200,15 +230,15 @@ A comprehensive school bus management platform providing unified login portal su
   - Modal dialog displaying entered credentials after successful account creation
   - Copy-to-clipboard functionality for both username and password
   - Print-friendly format for physical credential distribution
-  - Warning message about credential security\n  - Option to send credentials via email (optional feature)
+  - Warning message about credential security
+  - Option to send credentials via email (optional feature)
 - **Credential Management Features**:
   - Admin ability to view masked credentials in user lists
   - Reveal functionality with audit logging
   - Password reset capability where admin enters new password
   - Bulk credential export for backup purposes (encrypted format)
   - Credential expiration and forced password change policies (optional)
-
-### 3.3 Driver Module (Phase 3: Driver Dashboard - The Publisher)
+\n### 3.3 Driver Module (Phase 3: Driver Dashboard - The Publisher)
 
 #### 3.3.1 Driver Control Panel (Web Version)
 - **Status Display**: Show current online/offline status\n- **Trip Control Buttons**:
@@ -228,8 +258,9 @@ A comprehensive school bus management platform providing unified login portal su
 - **Background Persistence**: Maintain location updates even when app is in background
 \n#### 3.3.3 GPS Reporting Logic (Socket.io Implementation)
 - Driver client sends location data via `socket.emit('driver:ping', payload)`
-- Payload includes: busId, lat, lng, speed, heading, timestamp
+- Payload includes: busId, lat, lng, speed, heading, timestamp, tripStatus
 - Backend receives and broadcasts to all clients subscribed to that vehicle
+- Backend updates hourly active vehicle statistics when trip status changes
 \n### 3.4 Student and Parent Module (Phase 4: Parent/Student View - The Subscriber)
 
 #### 3.4.1 Real-time Map Tracking (Phase 2: Map Integration)
@@ -243,8 +274,7 @@ A comprehensive school bus management platform providing unified login portal su
   - Display vehicle movement trajectory\n  - Smooth animation transitions: Use CSS transitions to interpolate between coordinate points for sliding effect instead of teleportation
   - Display pulse animation when vehicle is moving (triggered when speed > 0)
 \n#### 3.4.2 Location Information Display
-- Student pickup/drop-off point markers
-- Distance between current bus location and pickup point
+- Student pickup/drop-off point markers\n- Distance between current bus location and pickup point
 - Estimated Time of Arrival (ETA)
 - Automatic map refresh mechanism (via Socket.io real-time subscription)
 - Route information display (read-only)
@@ -261,7 +291,8 @@ A comprehensive school bus management platform providing unified login portal su
   - Automatically request push permissions\n  - Obtain FCM Token and upload to backend
   - Configure notification handlers: shouldShowAlert, shouldPlaySound, shouldSetBadge
   - Listen for notification receipt events and log to console
-- **Trigger Logic**: Real-time monitoring of location changes with automatic detection\n\n### 3.5 Development and Testing Tools
+- **Trigger Logic**: Real-time monitoring of location changes with automatic detection\n
+### 3.5 Development and Testing Tools
 
 #### 3.5.1 GPS Simulator (simulateBus.js)
 - **Purpose**: Simulate bus traveling along preset routes for development testing
@@ -272,6 +303,7 @@ A comprehensive school bus management platform providing unified login portal su
   - Send GPS coordinates in loop following preset route array
   - Send location updates every 3 seconds
   - Include simulated speed (45km/h) and heading (90 degrees) data
+  - Simulate trip start/stop events for testing hourly analytics
 - **Route Configuration**: Support custom MOCK_ROUTE array or polyline decoder
 
 ## 4. Technical Architecture
@@ -283,16 +315,22 @@ A comprehensive school bus management platform providing unified login portal su
   - `students` table: Student profiles (id, username, password_hash, student_id_number, name, grade, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, emergency_contact, bus_id, created_at, created_by_admin_id, status)
   - `parents` table: Parent accounts (id, username, password_hash, name, email, phone, address, relationship, student_id foreign key with NOT NULL constraint, fcmToken, created_at, created_by_admin_id, status)
   - `vehicles` table: Vehicle information (id, vehicle_id_number, license_plate, model, capacity, route_name, status, created_at)\n  - `routes` table: Route information (id, route_name, polyline_string, stops_json, assigned_vehicle_id, created_at, updated_at)
-  - `gps_logs` table: Driver real-time location records (id, driver_id, vehicle_id, latitude, longitude, heading, speed, timestamp)\n  - `audit_logs` table: Administrative action logging (id, admin_id, action_type, target_table, target_id, action_details, ip_address, timestamp)
+  - `gps_logs` table: Driver real-time location records (id, driver_id, vehicle_id, latitude, longitude, heading, speed, timestamp)\n  - `trips` table: Trip records (id, vehicle_id, driver_id, trip_status enum('active', 'completed', 'cancelled'), start_time, end_time, created_at)\n  - `hourly_vehicle_stats` table: Aggregated hourly statistics (id, date, hour, active_vehicle_count, created_at, updated_at)
+  - `audit_logs` table: Administrative action logging (id, admin_id, action_type, target_table, target_id, action_details, ip_address, timestamp)
 
 - **Database Constraints**:
   - Foreign key constraint: `parents.student_id` references `students.id` with ON DELETE RESTRICT
   - Foreign key constraint: `drivers.vehicle_id` references `vehicles.id` with ON DELETE SET NULL
   - Foreign key constraint: `students.bus_id` references `vehicles.id` with ON DELETE SET NULL
+  - Foreign key constraint: `trips.vehicle_id` references `vehicles.id` with ON DELETE CASCADE
+  - Foreign key constraint: `trips.driver_id` references `drivers.id` with ON DELETE CASCADE
   - Unique constraint on usernames across all user tables (enforced via unique index)
   - Check constraint ensuring parent accounts have at least one linked student
   - Check constraint on password complexity requirements (minimum 8 characters, mixed case, numbers, special characters)
-  - Index on frequently queried fields (username, student_id_number, vehicle_id)\n
+  - Check constraint on trip_status enum values
+  - Index on frequently queried fields (username, student_id_number, vehicle_id, timestamp)
+  - Composite index on (date, hour) in hourly_vehicle_stats table for efficient querying
+
 ### 4.2 Backend Technology Stack
 - Supabase (replacing traditional Node.js + MongoDB approach)
 - Supabase Auth (JWT authentication with role-based claims)
@@ -302,12 +340,16 @@ A comprehensive school bus management platform providing unified login portal su
 - Push Notification Service (push notification service, integrated with FCM)
 - **Credential Validation Service**: Username uniqueness checker and password complexity validator
 - **Audit Logging Service**: Track all administrative actions for compliance and security with IP tracking
-- **Transaction Management Service**: Ensure atomic operations for student-parent creation\n
+- **Transaction Management Service**: Ensure atomic operations for student-parent creation
+- **Analytics Service**: Calculate and aggregate hourly active vehicle statistics with caching
+- **Real-time Stats Broadcaster**: Socket.io service broadcasting hourly statistics updates to admin clients
+
 ### 4.3 Frontend Technology Stack
-\n#### Admin Dashboard:\n- React (Vite build)\n- Tailwind CSS\n- shadcn/ui component library (Data Tables, Dialog, Sheet, Toast, Form components)
+\n#### Admin Dashboard:\n- React (Vite build)\n- Tailwind CSS\n- shadcn/ui component library (Data Tables, Dialog, Sheet, Toast, Form components, Card components)
 - Socket.io Client (real-time communication)
 - react-map-gl or React-Leaflet (map components)
 - mapbox-gl-draw (route drawing plugin)
+- Recharts or Chart.js (for hourly activity charts)
 - **Enhanced Student/Parent Management UI**:
   - Multi-step form wizard for student addition with parent details
   - Manual credential entry fields with real-time validation
@@ -318,19 +360,21 @@ A comprehensive school bus management platform providing unified login portal su
   - Credential management interface with reveal/mask toggle
   - Audit log viewer component
   - **Dedicated search bars for driver, student, and parent list pages with real-time filtering**
-\n#### Driver Portal (Web Version):
+  - **Hourly active vehicles analytics dashboard with real-time charts and statistics**
+
+#### Driver Portal (Web Version):
 - React (Vite build)
 - Tailwind CSS
 - Socket.io Client\n- Geolocation API (browser native)
 - Responsive design supporting mobile browser access
 \n#### Student/Parent Portal (Mobile):
-- React Native + Expo
-- expo-notifications (push notifications)
+- React Native + Expo\n- expo-notifications (push notifications)
 - React-Leaflet or react-native-maps\n- Socket.io Client
 - Geolocation API
 \n#### Map Component Dependencies:
 ```bash\nnpm install leaflet react-leaflet\nnpm install -D @types/leaflet\nnpm install mapbox-gl @mapbox/mapbox-gl-draw
 npm install socket.io-client
+npm install recharts
 npm install expo-notifications (mobile)\n```
 
 #### Global CSS Configuration (src/index.css):
@@ -370,13 +414,20 @@ npm install expo-notifications (mobile)\n```
 - **`POST /api/admin/credentials/reset-password`**: Reset user password (admin enters new password)
 - **`POST /api/admin/validate-username`**: Check username uniqueness across all user tables
 - **`POST /api/admin/validate-password`**: Validate password complexity requirements
-
-### 4.5 Socket.io Event Definitions
+- **`GET /api/admin/analytics/hourly-active`**: Get hourly active vehicle statistics for current day
+- **`GET /api/admin/analytics/current-active`**: Get current number of active vehicles in real-time
+- **`GET /api/admin/analytics/hourly-comparison`**: Compare current day with previous day hourly activity
+- **`GET /api/admin/analytics/active-vehicles-list`**: Get list of currently active vehicles with details
+- `POST /api/trips/start`: Driver starts a trip (updates trip status to 'active')
+- `POST /api/trips/stop`: Driver stops a trip (updates trip status to 'completed')\n\n### 4.5 Socket.io Event Definitions
 
 #### Driver Events:\n- `driver:auth`: Driver authentication (send token and busId)
-- `driver:ping`: Send location update (busId, lat, lng, speed, heading, timestamp)
-\n#### Admin Events:
+- `driver:ping`: Send location update (busId, lat, lng, speed, heading, timestamp, tripStatus)
+- `driver:trip_start`: Notify trip start event
+- `driver:trip_stop`: Notify trip stop event\n\n#### Admin Events:
 - `admin:all_buses_update`: Receive all vehicle location updates
+- `admin:hourly_stats_update`: Receive real-time hourly active vehicle statistics updates
+- `admin:active_count_update`: Receive current active vehicle count updates
 \n#### Parent/Student Events:
 - `parent:subscribe`: Subscribe to specific vehicle location\n- `bus:location_update`: Receive subscribed vehicle location updates
 \n### 4.6 LiveMap Component Implementation (src/components/map/LiveMap.jsx)
@@ -404,7 +455,7 @@ interface LiveMapProps {
 }\n```
 
 #### State Management:
-- Store vehicle states using hashmap structure: `{ busId: { lat, lng, speed, heading } }`
+- Store vehicle states using hashmap structure: `{ busId: { lat, lng, speed, heading, tripStatus } }`
 - Dynamically update via Socket.io listening to `admin:all_buses_update` event
 - Vehicle markers show/hide pulse animation based on speed value
 \n#### Usage Example:
@@ -414,17 +465,15 @@ import LiveMap from '@/components/map/LiveMap';
 const DashboardPage = () => {
   const [buses, setBuses] = useState({});
   const { socket } = useSocket();
-
-  useEffect(() => {
-    if (!socket) return;
+\n  useEffect(() => {\n    if (!socket) return;
     socket.on('admin:all_buses_update', (data) => {
       setBuses(prev => ({
         ...prev,
         [data.busId]: data\n      }));
     });
-    return () => socket.off('admin:all_buses_update');\n  }, [socket]);
-
-  return (
+    return () => socket.off('admin:all_buses_update');
+  }, [socket]);
+\n  return (
     <div className='h-screen'>
       <LiveMap \n        center={[17.3850, 78.4867]} 
         zoom={13} \n        vehicles={Object.values(buses)} 
@@ -437,8 +486,7 @@ const DashboardPage = () => {
 ### 4.7 Push Notification Implementation (mobile/hooks/useNotifications.ts)
 
 #### Feature Configuration:
-- Use expo-notifications library
-- Configure notification handler: show notifications when app is open, play sound, do not set badge
+- Use expo-notifications library\n- Configure notification handler: show notifications when app is open, play sound, do not set badge
 - Automatically request push permissions
 - Obtain Expo Push Token (FCM Token)\n- Listen for notification receipt events
 
@@ -447,35 +495,134 @@ const DashboardPage = () => {
 2. Upload obtained FCM Token to backend: `axios.post('/api/users/update-fcm', { fcmToken: token })`
 3. Backend sends push via FCM to corresponding users when geofence is triggered
 
-## 5. Real-time Tracking Implementation
+### 4.8 Hourly Analytics Component Implementation (src/components/analytics/HourlyActiveVehicles.jsx)
+\n#### Component Structure:
+- **Active Vehicle Counter Card**:
+  - Large numeric display showing current active vehicle count
+  - Trend indicator (up/down arrow with percentage change)
+  - Real-time updates via Socket.io
+  - Styling: Neon green accent on dark background
+
+- **Hourly Activity Chart**:
+  - Line chart component using Recharts library
+  - X-axis: 24hours (00:00 to 23:00)
+  - Y-axis: Active vehicle count
+  - Responsive design with dark theme
+  - Tooltip showing exact values on hover
+  - Grid lines with subtle styling
+
+- **Active Vehicles List Panel**:
+  - Collapsible side panel component
+  - Real-time list of active vehicles\n  - Vehicle card showing: ID, driver name, route, trip duration
+  - Click handler to highlight vehicle on map
+  - Sort and filter options
+\n#### Component Interface:
+```typescript
+interface HourlyStats {
+  hour: number;
+  activeCount: number;
+}\n
+interface ActiveVehicle {
+  vehicleId: string;
+  driverName: string;
+  routeName: string;
+  tripStartTime: string;
+  status: 'moving' | 'stopped';
+}
+\ninterface HourlyActiveVehiclesProps {
+  onVehicleClick?: (vehicleId: string) => void;
+}\n```
+
+#### State Management:
+```typescript
+const [currentActive, setCurrentActive] = useState(0);
+const [hourlyData, setHourlyData] = useState<HourlyStats[]>([]);
+const [activeVehicles, setActiveVehicles] = useState<ActiveVehicle[]>([]);
+const [previousHourCount, setPreviousHourCount] = useState(0);
+\nuseEffect(() => {
+  if (!socket) return;
+  \n  socket.on('admin:active_count_update', (data) => {
+    setCurrentActive(data.count);
+  });
+  
+  socket.on('admin:hourly_stats_update', (data) => {
+    setHourlyData(data.hourlyStats);
+  });
+  
+  return () => {
+    socket.off('admin:active_count_update');\n    socket.off('admin:hourly_stats_update');\n  };
+}, [socket]);
+```
+
+#### Usage Example:
+```typescript
+import HourlyActiveVehicles from '@/components/analytics/HourlyActiveVehicles';
+
+const AdminDashboard = () => {\n  const handleVehicleClick = (vehicleId: string) => {
+    // Highlight vehicle on map
+    mapRef.current?.flyTo(vehicleLocations[vehicleId]);
+  };
+
+  return (
+    <div className='grid grid-cols-12 gap-4'>
+      <div className='col-span-8'>
+        <LiveMap vehicles={buses} />
+      </div>
+      <div className='col-span-4'>
+        <HourlyActiveVehicles onVehicleClick={handleVehicleClick} />
+      </div>
+    </div>
+  );\n};
+```
+\n##5. Real-time Tracking Implementation
 
 ### 5.1 Driver Side (Data Publisher)
 - Use `navigator.geolocation.watchPosition` to obtain location\n- Send location data via Socket.io every 3-5 seconds
-- Included fields: busId, latitude, longitude, speed, heading, timestamp
+- Included fields: busId, latitude, longitude, speed, heading, timestamp, tripStatus
 - Support both web and mobile platforms
+- Update trip status when starting/stopping trips
 
 ### 5.2 Server Side (Socket.io + Supabase)
 - Receive driver location data and store in `gps_logs` table
 - Real-time broadcast to subscribed clients via Socket.io
 - Execute geofencing calculations (GeofenceService)
-- Trigger push notifications (when distance < 500 meters)
+- Trigger push notifications (when distance< 500meters)
 - Location data retention policy: Keep last 24 hours of trajectory for historical playback
+- **Analytics Processing**:
+  - Monitor trip start/stop events
+  - Update `trips` table with current trip status
+  - Calculate active vehicle count in real-time
+  - Aggregate hourly statistics and store in `hourly_vehicle_stats` table
+  - Broadcast statistics updates via Socket.io to admin clients
+  - Cache current active count for performance optimization
 
 ### 5.3 Student/Parent Side (Data Subscriber)
 - Establish Socket.io connection and subscribe to specific vehicle\n- Listen for `bus:location_update` events
 - Receive latest location and update map markers
 - Use CSS transitions for smooth movement animations
-- Receive push notification alerts\n
-### 5.4 Admin Side (Global Monitoring)
+- Receive push notification alerts\n\n### 5.4 Admin Side (Global Monitoring)
 - Establish Socket.io connection\n- Listen for `admin:all_buses_update` events
 - Real-time update of all vehicle locations
 - Use hashmap for efficient multi-vehicle state management
-\n### 5.5 Performance Optimization
+- **Analytics Monitoring**:
+  - Listen for `admin:hourly_stats_update` events
+  - Listen for `admin:active_count_update` events
+  - Update analytics dashboard in real-time
+  - Display hourly activity charts with live data
+  - Show current active vehicle count with trend indicators
+
+### 5.5 Performance Optimization
 - GPS data throttled storage (3-10 second intervals to avoid database overload)
 - Socket.io room mechanism (broadcast by vehicle ID grouping)
 - Geospatial indexing for optimized query performance
 - Frontend marker interpolation animation (reduce visual jumping)
 - Use hashmap instead of array traversal for improved update efficiency
+- **Analytics Optimization**:
+  - Cache hourly aggregates in memory (Redis or in-memory cache)
+  - Batch update hourly statistics every 5 minutes
+  - Use database triggers for automatic trip status updates
+  - Implement efficient SQL queries with proper indexing
+  - Lazy load historical data on demand
 
 ## 6. Development Phase Planning
 
@@ -491,22 +638,21 @@ const DashboardPage = () => {
 - **Implement atomic transaction handling for student-parent creation**
 - **Build password strength indicator component**
 - **Implement dedicated search bars for driver, student, and parent list pages with real-time filtering functionality**
-
-### Phase 2: Map Integration (Priority: High, Complexity: Medium)\n- Integrate React-Leaflet and CartoDB Dark Matter\n- Create LiveMap component\n- Implement neon green pulse markers
-- Integrate mapbox-gl-draw route drawing tool
+\n### Phase 2: Map Integration (Priority: High, Complexity: Medium)\n- Integrate React-Leaflet and CartoDB Dark Matter\n- Create LiveMap component\n- Implement neon green pulse markers\n- Integrate mapbox-gl-draw route drawing tool
 - Implement admin-exclusive route management interface
 \n### Phase 3: Driver Location Logic (Priority: Medium, Complexity: High)
 - Implement Geolocation API calls
 - Configure data throttling mechanism
 - Complete GPS data reporting logic (Socket.io)
 - Develop driver web control panel interface
-\n### Phase 4: Realtime Subscriptions (Priority: Medium, Complexity: High)
+- Implement trip start/stop functionality
+
+### Phase 4: Realtime Subscriptions (Priority: Medium, Complexity: High)
 - Configure Socket.io server and client
 - Implement event subscription logic
 - Add smooth animation transitions
 - Develop GPS simulator testing tool
-
-### Phase 5: Geofencing & Push Notifications (Priority: Optional, Complexity: Medium)
+\n### Phase 5: Geofencing & Push Notifications (Priority: Optional, Complexity: Medium)
 - Implement Haversine distance calculation (GeofenceService)
 - Integrate expo-notifications\n- Configure FCM push service
 - Implement arrival alert functionality
@@ -517,6 +663,20 @@ const DashboardPage = () => {
 - Implement stop marking functionality
 - Complete route-vehicle association logic
 - Implement route deletion with validation
+
+### Phase 7: Analytics Dashboard (Priority: High, Complexity: Medium)
+- **Implement trips table and trip status tracking**
+- **Develop Analytics Service for calculating hourly statistics**
+- **Create hourly_vehicle_stats table with proper indexing**
+- **Build HourlyActiveVehicles component with Recharts integration**
+- **Implement real-time Socket.io events for analytics updates**
+- **Develop active vehicle counter card with trend indicators**
+- **Create hourly activity line chart with dark theme styling**
+- **Build active vehicles list panel with click-to-highlight functionality**
+- **Implement caching mechanism for performance optimization**
+- **Add historical comparison features (day-over-day, weekly averages)**
+- **Integrate analytics dashboard into admin layout**
+- **Test real-time updates with GPS simulator**
 
 ## 7. Testing and Deployment Process
 
@@ -531,6 +691,13 @@ const DashboardPage = () => {
 9. **Test Route Management**: Verify admin-exclusive route configuration\n10. **Test Username Uniqueness**: Attempt to create duplicate usernames across different user types
 11. **Test Password Validation**: Attempt to create accounts with weak passwords
 12. **Test Search Functionality**: Verify search bars on driver, student, and parent pages filter results correctly in real-time
+13. **Test Analytics Dashboard**:
+    - Start multiple simulated trips
+    - Verify active vehicle count updates in real-time\n    - Verify hourly chart displays correct data
+    - Stop trips and verify count decreases\n    - Test active vehicles list panel functionality
+    - Verify click-to-highlight on map works
+    - Test historical comparison features
+    - Verify Socket.io events fire correctly
 
 ### 7.2 Key Verification Points
 - Socket.io connection status
@@ -547,6 +714,15 @@ const DashboardPage = () => {
 - **Audit logging accuracy and completeness**
 - **Transaction rollback on failure scenarios**
 - **Search bar functionality and performance on driver, student, and parent list pages**
+- **Analytics Dashboard Verification**:
+  - Real-time active vehicle count accuracy
+  - Hourly chart data accuracy and updates
+  - Active vehicles list real-time updates
+  - Trip status tracking correctness
+  - Socket.io event broadcasting reliability
+  - Chart rendering performance with large datasets
+  - Cache invalidation and refresh logic
+  - Historical data aggregation accuracy
 
 ### 7.3 Deployment Checklist
 - Generate Google Maps custom style JSON (mapStyle.json) to match Cyber-Dark theme
@@ -561,7 +737,16 @@ const DashboardPage = () => {
 - **Test all RBAC policies in production environment**
 - **Verify username uniqueness constraints are enforced**
 - **Test password complexity validation in production**
-\n## 8. Security and Performance\n- Password encryption storage (Supabase Auth built-in bcrypt)
+- **Analytics Deployment**:
+  - Verify hourly_vehicle_stats table is created with proper indexes
+  - Test Analytics Service performance under load
+  - Configure caching layer (Redis or in-memory)
+  - Set up database triggers for trip status updates
+  - Verify Socket.io analytics events work in production
+  - Test chart rendering performance\n  - Configure data retention policy for historical statistics
+  - Set up monitoring and alerting for analytics service
+
+## 8. Security and Performance\n- Password encryption storage (Supabase Auth built-in bcrypt)
 - JWT token expiration mechanism with refresh token support
 - CORS cross-origin configuration
 - Request rate limiting protection
@@ -582,17 +767,27 @@ const DashboardPage = () => {
 - **Form validation on both client and server side**
 - **Unique index constraints on username fields across all user tables**
 - **Search query sanitization to prevent injection attacks**
+- **Analytics Performance**:
+  - Efficient SQL queries with composite indexes on (date, hour)\n  - Caching layer for frequently accessed statistics
+  - Batch processing for hourly aggregations
+  - Database connection pooling
+  - Query result pagination for large datasets
+  - Lazy loading for historical data
+  - Optimized Socket.io event payload sizes
+  - Frontend chart data memoization
 
 ## 9. Website Design Style\n- **Theme Positioning**: Cyber-dark style with neon green accents, emphasizing technology and futurism
-- **Color Scheme**:\n  - Main background: #1a1a1a (deep black)
+- **Color Scheme**:
+  - Main background: #1a1a1a (deep black)
   - Card background: #ffffff (pure white, admin dashboard)
   - Primary color: #3b82f6 (tech blue)
-  - Neon green: #10b981 (emerald, for map markers, emphasis elements, START button)
+  - Neon green: #10b981 (emerald, for map markers, emphasis elements, START button, analytics highlights)
   - Warning/stop button: #ef4444 (red)\n  - Border color: #e2e8f0 (light gray)
   - Success state: #10b981 (emerald green)
   - Error state: #ef4444 (red)
-- Validation error: #ef4444 (red for error messages)
+  - Validation error: #ef4444 (red for error messages)
   - Validation success: #10b981 (green for valid inputs)
+  - Chart colors: Neon green (#10b981) for primary data, gradient fills for area charts
 - **Visual Details**:
   - Map markers: Neon green pulse animation (animate-ping) with shadow effects (shadow-green-400), pulse displays when vehicle is moving
   - Border radius: Medium rounded (0.5rem), large buttons use rounded-xl
@@ -606,6 +801,9 @@ const DashboardPage = () => {
   - **Multi-step forms**: Progress bar with step indicators, clear navigation buttons
   - **Validation messages**: Inline error messages below input fields, real-time feedback as user types
   - **Search bars**: Positioned prominently above data tables, with search icon, placeholder text, and clear button; styled with subtle border and focus state highlighting
+  - **Analytics Cards**: Large numeric displays with neon green accents, trend indicators with up/down arrows, subtle gradient backgrounds
+  - **Charts**: Dark theme with neon green lines, subtle grid lines, hover tooltips with detailed information, smooth animations
+  - **Active Vehicle List**: Card-based layout with vehicle status indicators, click-to-highlight interaction, smooth transitions
 - **Layout Approach**:
   - Admin dashboard: Sidebar navigation + main content area with breadcrumb navigation
   - Driver control panel: Full-screen vertical center layout, large button design for mobile operation convenience
@@ -616,3 +814,9 @@ const DashboardPage = () => {
   - **Modal dialogs**: Centered overlay with backdrop blur, clear action buttons\n  - **Data tables**: Pagination, search, filter, and sort capabilities with responsive column hiding
   - **Form validation**: Real-time feedback with color-coded borders (red for errors, green for valid inputs)
   - **Search interface**: Dedicated search bars positioned above driver, student, and parent list tables with consistent styling and real-time filtering
+  - **Analytics Dashboard Layout**:
+    - Top row: Active vehicle counter card (prominent placement)
+    - Middle section: Hourly activity chart (full width)
+    - Side panel: Active vehicles list (collapsible)\n    - Grid-based responsive layout (12-column system)
+    - Smooth transitions between different views
+    - Mobile-optimized stacked layout for smaller screens
