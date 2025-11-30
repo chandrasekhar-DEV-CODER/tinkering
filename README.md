@@ -1,92 +1,214 @@
-# Welcome to Your Miaoda Project
+# My School Ride - School Bus Tracking System
 
-## Project Info
+## 🚌 Project Overview
 
-## Project Directory
+My School Ride is an enterprise-level SaaS platform designed for schools to provide real-time school bus tracking, student safety management, driver dispatch, and parent notification services. The system features a cyber-dark themed interface with real-time GPS tracking capabilities.
 
-```
-├── README.md # Documentation
-├── components.json # Component library configuration
-├── eslint.config.js # ESLint configuration
-├── index.html # Entry file
-├── package.json # Package management
-├── postcss.config.js # PostCSS configuration
-├── public # Static resources directory
-│   ├── favicon.png # Icon
-│   └── images # Image resources
-├── src # Source code directory
-│   ├── App.tsx # Entry file
-│   ├── components # Components directory
-│   ├── context # Context directory
-│   ├── db # Database configuration directory
-│   ├── hooks # Common hooks directory
-│   ├── index.css # Global styles
-│   ├── layout # Layout directory
-│   ├── lib # Utility library directory
-│   ├── main.tsx # Entry file
-│   ├── routes.tsx # Routing configuration
-│   ├── pages # Pages directory
-│   ├── services # Database interaction directory
-│   ├── types # Type definitions directory
-├── tsconfig.app.json # TypeScript frontend configuration file
-├── tsconfig.json # TypeScript configuration file
-├── tsconfig.node.json # TypeScript Node.js configuration file
-└── vite.config.ts # Vite configuration file
-```
+## ✨ Key Features
 
-## Tech Stack
+### Core Functionality
+- **Real-time GPS Tracking**: Live location tracking of all active school buses
+- **Multi-role Access Control**: Support for super admins, school admins, drivers, and parents
+- **Vehicle Fleet Management**: Comprehensive vehicle information and status tracking
+- **Route & Stop Management**: Define bus routes with multiple stops and schedules
+- **Student Profile Management**: Manage student information and bus assignments
+- **Trip History & Analytics**: View past trips with detailed analytics
+- **Dashboard & Statistics**: Real-time overview of fleet operations
+- **Notification System**: Push notifications for proximity alerts and trip updates
 
-Vite, TypeScript, React, Supabase
+### Technical Highlights
+- **Cyber-Dark Theme**: Modern dark interface with neon green accents (#10b981)
+- **Responsive Design**: Desktop-first with mobile adaptation
+- **Real-time Updates**: Powered by Supabase Realtime
+- **Geospatial Queries**: PostGIS integration for location-based features
+- **Type-safe**: Full TypeScript implementation
 
-## Development Guidelines
+## 🛠 Tech Stack
 
-### How to edit code locally?
+### Frontend
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Tailwind CSS** - Styling
+- **shadcn/ui** - Component library
+- **Recharts** - Data visualization
+- **React Router** - Navigation
+- **Sonner** - Toast notifications
 
-You can choose [VSCode](https://code.visualstudio.com/Download) or any IDE you prefer. The only requirement is to have Node.js and npm installed.
+### Backend
+- **Supabase** - Backend as a Service
+  - PostgreSQL database with PostGIS extension
+  - Row Level Security (RLS) policies
+  - Real-time subscriptions
+  - Authentication & authorization
+  - Storage for avatars and files
 
-### Environment Requirements
-
-```
-# Node.js ≥ 20
-# npm ≥ 10
-Example:
-# node -v   # v20.18.3
-# npm -v    # 10.8.2
-```
-
-### Installing Node.js on Windows
+## 📁 Project Structure
 
 ```
-# Step 1: Visit the Node.js official website: https://nodejs.org/, click download. The website will automatically suggest a suitable version (32-bit or 64-bit) for your system.
-# Step 2: Run the installer: Double-click the downloaded installer to run it.
-# Step 3: Complete the installation: Follow the installation wizard to complete the process.
-# Step 4: Verify installation: Open Command Prompt (cmd) or your IDE terminal, and type `node -v` and `npm -v` to check if Node.js and npm are installed correctly.
+├── src/
+│   ├── components/
+│   │   ├── common/          # Shared components (Header, Sidebar)
+│   │   └── ui/              # shadcn/ui components
+│   ├── db/
+│   │   ├── supabase.ts      # Supabase client configuration
+│   │   └── api.ts           # Database API layer
+│   ├── pages/               # Application pages
+│   │   ├── Dashboard.tsx    # Main dashboard
+│   │   ├── LiveTracking.tsx # Real-time tracking
+│   │   ├── Vehicles.tsx     # Vehicle management
+│   │   ├── Routes.tsx       # Route management
+│   │   ├── Stops.tsx        # Stop management
+│   │   ├── Students.tsx     # Student management
+│   │   ├── Trips.tsx        # Trip history
+│   │   └── Settings.tsx     # System settings
+│   ├── types/
+│   │   └── types.ts         # TypeScript type definitions
+│   ├── App.tsx              # Main application component
+│   ├── routes.tsx           # Route configuration
+│   └── index.css            # Global styles & design system
+├── supabase/
+│   └── migrations/          # Database migrations
+└── public/                  # Static assets
 ```
 
-### Installing Node.js on macOS
+## 🚀 Getting Started
 
-```
-# Step 1: Using Homebrew (Recommended method): Open Terminal. Type the command `brew install node` and press Enter. If Homebrew is not installed, you need to install it first by running the following command in Terminal:
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-Alternatively, use the official installer: Visit the Node.js official website. Download the macOS .pkg installer. Open the downloaded .pkg file and follow the prompts to complete the installation.
-# Step 2: Verify installation: Open Command Prompt (cmd) or your IDE terminal, and type `node -v` and `npm -v` to check if Node.js and npm are installed correctly.
-```
+### Prerequisites
 
-### After installation, follow these steps:
-
-```
-# Step 1: Download the code package
-# Step 2: Extract the code package
-# Step 3: Open the code package with your IDE and navigate into the code directory
-# Step 4: In the IDE terminal, run the command to install dependencies: npm i
-# Step 5: In the IDE terminal, run the command to start the development server: npm run dev -- --host 127.0.0.1
-# Step 6: if step 5 failed, try this command to start the development server: npx vite --host 127.0.0.1
+```bash
+Node.js >= 20
+npm >= 10
 ```
 
-### How to develop backend services?
+### Installation
 
-Configure environment variables and install relevant dependencies.If you need to use a database, please use the official version of Supabase.
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd app-7wscx5suxq0x
+```
 
-## Learn More
+2. **Install dependencies**
+```bash
+npm install
+```
 
-You can also check the help documentation: Download and Building the app（ [https://intl.cloud.baidu.com/en/doc/MIAODA/s/download-and-building-the-app-en](https://intl.cloud.baidu.com/en/doc/MIAODA/s/download-and-building-the-app-en)）to learn more detailed content.
+3. **Environment Setup**
+
+The `.env` file is already configured with Supabase credentials:
+```
+VITE_APP_ID=app-7wscx5suxq0x
+VITE_SUPABASE_URL=<your-supabase-url>
+VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+```
+
+4. **Start development server**
+```bash
+npm run dev -- --host 127.0.0.1
+```
+
+Or alternatively:
+```bash
+npx vite --host 127.0.0.1
+```
+
+5. **Open your browser**
+Navigate to `http://127.0.0.1:5173`
+
+## 📊 Database Schema
+
+The system uses PostgreSQL with PostGIS extension for geospatial features. Key tables include:
+
+- **profiles** - User profiles with role-based access
+- **vehicles** - School bus fleet information
+- **routes** - Bus route definitions
+- **stops** - Bus stop locations with coordinates
+- **students** - Student profiles and assignments
+- **student_parents** - Parent-student relationships
+- **trips** - Trip session records
+- **location_logs** - GPS breadcrumb trail
+- **trip_events** - Event logging (arrivals, pickups, etc.)
+- **notifications** - Push notification records
+
+## 🎨 Design System
+
+### Color Palette
+- **Background**: `#0f172a` (Deep slate blue)
+- **Card**: `#1e293b` (Dark gray blue)
+- **Primary**: `#10b981` (Neon green)
+- **Destructive**: `#ef4444` (Alert red)
+- **Border**: `#475569` (Slate gray)
+
+### Typography
+- Font family: System fonts
+- Responsive sizing with Tailwind utilities
+
+### Components
+All UI components follow shadcn/ui patterns with custom cyber-dark theming.
+
+## 🔐 Security
+
+- Row Level Security (RLS) enabled on all tables
+- Role-based access control (RBAC)
+- JWT authentication via Supabase Auth
+- Secure API endpoints with proper authorization
+
+## 📱 Features by Role
+
+### Super Admin
+- Full system access
+- User management
+- System configuration
+
+### School Admin
+- Fleet management
+- Route planning
+- Student assignments
+- Analytics and reports
+
+### Driver
+- View assigned vehicles
+- Start/end trips
+- Update location
+- Mark student attendance
+
+### Parent
+- Track child's bus in real-time
+- View route and stops
+- Receive proximity notifications
+- View trip history
+
+## 🔄 Real-time Features
+
+The system uses Supabase Realtime for:
+- Live vehicle location updates
+- Trip status changes
+- Notification delivery
+- Dashboard statistics
+
+## 📈 Future Enhancements
+
+- Map integration (Mapbox/Google Maps)
+- Mobile app for drivers and parents
+- Advanced analytics and reporting
+- Geofencing with automatic alerts
+- Route optimization algorithms
+- Maintenance scheduling
+- Fuel consumption tracking
+
+## 🤝 Contributing
+
+This is an enterprise project. For contribution guidelines, please contact the project maintainers.
+
+## 📄 License
+
+Copyright © 2025 My School Ride
+
+## 📞 Support
+
+For support and inquiries, please contact the development team.
+
+---
+
+Built with ❤️ using React, TypeScript, and Supabase
