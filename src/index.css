@@ -1,4 +1,6 @@
 /* stylelint-disable */
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -133,4 +135,33 @@ All colors MUST be HSL.
       box-shadow: 0 0 40px hsl(var(--primary) / 0.8);
     }
   }
+}
+
+/* Leaflet Map Styles for Cyber-Dark Theme */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background-color: hsl(var(--background));
+  z-index: 0;
+}
+
+.leaflet-popup-content-wrapper {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.leaflet-popup-tip {
+  background-color: hsl(var(--card));
+}
+
+.leaflet-control-zoom a {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: hsl(var(--muted)) !important;
 }
