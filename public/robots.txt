@@ -1,0 +1,27 @@
+# robots.txt for My School Ride
+
+# Allow all crawlers to access public pages
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /forgot-password
+
+# Disallow protected/authenticated routes
+Disallow: /admin/
+Disallow: /driver/
+Disallow: /profile
+Disallow: /tracking/
+Disallow: /vehicles
+Disallow: /routes
+Disallow: /stops
+Disallow: /students
+Disallow: /trips
+Disallow: /settings
+Disallow: /verify-otp
+Disallow: /reset-password
+
+# Disallow API endpoints if any
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://myschoolride.com/sitemap.xml
